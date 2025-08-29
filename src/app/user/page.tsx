@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useSession, signOut } from 'next-auth/react';
+import Image from 'next/image';
 
 const UserPage = () => {
   const { data: session, status } = useSession();
@@ -29,9 +30,11 @@ const UserPage = () => {
       <h1 className="text-2xl font-bold mb-4">User Information</h1>
 
       {session.user?.image && (
-        <img
+        <Image
           src={session.user.image}
           alt="User profile"
+          width={96}
+          height={96}
           className="w-24 h-24 rounded-full mx-auto mb-4"
         />
       )}
