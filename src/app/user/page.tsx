@@ -51,6 +51,12 @@ const UserPage = () => {
             <strong>Email:</strong> {session.user.email}
           </p>
         )}
+
+        {session.user?.id && (
+          <p className="text-lg">
+            <strong>User ID:</strong> {session.user.id}
+          </p>
+        )}
       </div>
 
       <button
