@@ -31,26 +31,35 @@ A Next.js application that allows users to store their favorite movies and get f
 
 ### Environment Setup
 
+For detailed setup instructions, refer to the documentation files:
+
+1. **Environment Variables**: See `docs/ENVIRONMENT_SETUP.md` for complete environment variable configuration
+2. **Database Setup**: See `docs/DATABASE_SETUP.md` for database configuration and migration instructions
+
+Quick setup:
+
 1. Copy `.env.example` to `.env.local`:
 
 ```bash
 cp .env.example .env.local
 ```
 
-2. Update `.env.local` with your credentials:
+2. Configure your environment variables (see documentation for details)
+
+### Docker Database Setup
+
+The project includes a Docker Compose configuration for easy PostgreSQL setup. Refer to the documentation for detailed instructions:
+
+- Start PostgreSQL with Docker:
+
+```bash
+docker-compose up -d
+```
+
+- Use the Docker connection string in your `.env.local`:
 
 ```env
-# Database
-DATABASE_URL="postgresql://username:password@localhost:5432/moviefunfacts"
-
-# Authentication
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-NEXTAUTH_SECRET=your_nextauth_secret
-NEXTAUTH_URL=http://localhost:3000
-
-# OpenAI
-OPENAI_API_KEY=your_openai_api_key
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/moviefunfacts"
 ```
 
 ### Installation
@@ -64,7 +73,7 @@ npm install
 2. Set up the database:
 
 ```bash
-npx prisma migrate dev
+npm run db:migrate
 ```
 
 3. Start the development server:
@@ -74,6 +83,16 @@ npm run dev
 ```
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Database Migrations
+
+The project uses Prisma for database management. For detailed database setup and migration instructions, refer to `docs/DATABASE_SETUP.md`.
+
+Key commands:
+
+- `npm run db:migrate` - Create and apply migrations
+- `npm run db:generate` - Generate Prisma client
+- `npm run db:studio` - Open Prisma Studio to view database content
 
 ## Usage
 
