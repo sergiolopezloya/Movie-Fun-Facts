@@ -7,6 +7,7 @@ import { useReducer, useEffect } from 'react';
 type State = {
   favoriteMovie: string;
   isSubmitting: boolean;
+  isLoading: boolean;
   showMovieForm: boolean;
   movieSaved: boolean;
 };
@@ -14,12 +15,14 @@ type State = {
 type Action =
   | { type: 'setFavoriteMovie'; payload: string }
   | { type: 'setIsSubmitting'; payload: boolean }
+  | { type: 'setIsLoading'; payload: boolean }
   | { type: 'setShowMovieForm'; payload: boolean }
   | { type: 'setMovieSaved'; payload: boolean };
 
 const initialState: State = {
   favoriteMovie: '',
   isSubmitting: false,
+  isLoading: false,
   showMovieForm: false,
   movieSaved: false,
 };
@@ -30,6 +33,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, favoriteMovie: action.payload };
     case 'setIsSubmitting':
       return { ...state, isSubmitting: action.payload };
+    case 'setIsLoading':
+      return { ...state, isLoading: action.payload };
     case 'setShowMovieForm':
       return { ...state, showMovieForm: action.payload };
     case 'setMovieSaved':
@@ -50,6 +55,7 @@ export default function Home() {
   }, [session]);
 
   const checkFavoriteMovie = async () => {
+    dispatch({ type: 'setIsLoading', payload: true });
     try {
       const response = await fetch('/api/user/favorite-movie', {
         method: 'GET',
@@ -66,6 +72,8 @@ export default function Home() {
     } catch (error) {
       console.error('Error checking favorite movie:', error);
       dispatch({ type: 'setShowMovieForm', payload: true });
+    } finally {
+      dispatch({ type: 'setIsLoading', payload: false });
     }
   };
 
@@ -106,31 +114,42 @@ export default function Home() {
 
           {state.showMovieForm && !state.movieSaved && (
             <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">
-                Tell us your favorite movie!
-              </h2>
-              <form onSubmit={handleSaveFavoriteMovie} className="space-y-4">
-                <input
-                  type="text"
-                  value={state.favoriteMovie}
-                  onChange={(e) =>
-                    dispatch({
-                      type: 'setFavoriteMovie',
-                      payload: e.target.value,
-                    })
-                  }
-                  placeholder="Enter your favorite movie..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-                <button
-                  type="submit"
-                  disabled={state.isSubmitting || !state.favoriteMovie.trim()}
-                  className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  {state.isSubmitting ? 'Saving...' : 'Save Favorite Movie'}
-                </button>
-              </form>
+              {state.isLoading ? (
+                <p className="text-gray-600">Checking your favorite movie...</p>
+              ) : (
+                <>
+                  <h2 className="text-xl font-semibold mb-4">
+                    Tell us your favorite movie!
+                  </h2>
+                  <form
+                    onSubmit={handleSaveFavoriteMovie}
+                    className="space-y-4"
+                  >
+                    <input
+                      type="text"
+                      value={state.favoriteMovie}
+                      onChange={(e) =>
+                        dispatch({
+                          type: 'setFavoriteMovie',
+                          payload: e.target.value,
+                        })
+                      }
+                      placeholder="Enter your favorite movie..."
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                    <button
+                      type="submit"
+                      disabled={
+                        state.isSubmitting || !state.favoriteMovie.trim()
+                      }
+                      className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      {state.isSubmitting ? 'Saving...' : 'Save Favorite Movie'}
+                    </button>
+                  </form>
+                </>
+              )}
             </div>
           )}
 
