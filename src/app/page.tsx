@@ -2,14 +2,46 @@
 
 import { signIn, useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useReducer, useEffect } from 'react';
+
+type State = {
+  favoriteMovie: string;
+  isSubmitting: boolean;
+  showMovieForm: boolean;
+  movieSaved: boolean;
+};
+
+type Action =
+  | { type: 'setFavoriteMovie'; payload: string }
+  | { type: 'setIsSubmitting'; payload: boolean }
+  | { type: 'setShowMovieForm'; payload: boolean }
+  | { type: 'setMovieSaved'; payload: boolean };
+
+const initialState: State = {
+  favoriteMovie: '',
+  isSubmitting: false,
+  showMovieForm: false,
+  movieSaved: false,
+};
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'setFavoriteMovie':
+      return { ...state, favoriteMovie: action.payload };
+    case 'setIsSubmitting':
+      return { ...state, isSubmitting: action.payload };
+    case 'setShowMovieForm':
+      return { ...state, showMovieForm: action.payload };
+    case 'setMovieSaved':
+      return { ...state, movieSaved: action.payload };
+    default:
+      return state;
+  }
+}
 
 export default function Home() {
   const { data: session } = useSession();
-  const [favoriteMovie, setFavoriteMovie] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showMovieForm, setShowMovieForm] = useState(false);
-  const [movieSaved, setMovieSaved] = useState(false);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
     // Check if user has already set a favorite movie
@@ -27,41 +59,41 @@ export default function Home() {
       if (response.ok) {
         const data = await response.json();
         if (data.favoriteMovie) {
-          setMovieSaved(true);
+          dispatch({ type: 'setMovieSaved', payload: true });
         } else {
-          setShowMovieForm(true);
+          dispatch({ type: 'setShowMovieForm', payload: true });
         }
       }
     } catch (error) {
       console.error('Error checking favorite movie:', error);
-      setShowMovieForm(true);
+      dispatch({ type: 'setShowMovieForm', payload: true });
     }
   };
 
   const handleSaveFavoriteMovie = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!favoriteMovie.trim()) return;
+    if (!state.favoriteMovie.trim()) return;
 
-    setIsSubmitting(true);
+    dispatch({ type: 'setIsSubmitting', payload: true });
     try {
       const response = await fetch('/api/user/favorite-movie', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ favoriteMovie: favoriteMovie.trim() }),
+        body: JSON.stringify({ favoriteMovie: state.favoriteMovie.trim() }),
       });
 
       if (response.ok) {
-        setMovieSaved(true);
-        setShowMovieForm(false);
+        dispatch({ type: 'setMovieSaved', payload: true });
+        dispatch({ type: 'setShowMovieForm', payload: false });
       } else {
         console.error('Failed to save favorite movie');
       }
     } catch (error) {
       console.error('Error saving favorite movie:', error);
     } finally {
-      setIsSubmitting(false);
+      dispatch({ type: 'setIsSubmitting', payload: false });
     }
   };
 
@@ -73,7 +105,7 @@ export default function Home() {
         <div className="space-y-4">
           <p className="text-lg">Welcome back, {session.user?.name}!</p>
 
-          {showMovieForm && !movieSaved && (
+          {state.showMovieForm && !state.movieSaved && (
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold mb-4">
                 Tell us your favorite movie!
@@ -81,24 +113,29 @@ export default function Home() {
               <form onSubmit={handleSaveFavoriteMovie} className="space-y-4">
                 <input
                   type="text"
-                  value={favoriteMovie}
-                  onChange={(e) => setFavoriteMovie(e.target.value)}
+                  value={state.favoriteMovie}
+                  onChange={(e) =>
+                    dispatch({
+                      type: 'setFavoriteMovie',
+                      payload: e.target.value,
+                    })
+                  }
                   placeholder="Enter your favorite movie..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
                 <button
                   type="submit"
-                  disabled={isSubmitting || !favoriteMovie.trim()}
+                  disabled={state.isSubmitting || !state.favoriteMovie.trim()}
                   className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? 'Saving...' : 'Save Favorite Movie'}
+                  {state.isSubmitting ? 'Saving...' : 'Save Favorite Movie'}
                 </button>
               </form>
             </div>
           )}
 
-          {movieSaved && (
+          {state.movieSaved && (
             <div className="bg-green-100 p-4 rounded-lg">
               <p className="text-green-800">
                 Thanks for sharing your favorite movie!
