@@ -44,8 +44,7 @@ export default function Home() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    // Check if user has already set a favorite movie
-    if (session?.user?.id) {
+    if (session?.user?.email) {
       checkFavoriteMovie();
     }
   }, [session]);
